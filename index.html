@@ -3,20 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>PROVA</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #bg-img-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+    </style>
   </head>
   <body>
-    <div
-      id="background-img-container"
-      style="
-        display: block;
-        position: absolute;
-        width: 100vw;
-        top: 0;
-        z-index: 0;
-      "
-    >
-      <img src="./MATILDE-DEF.webp" alt="background-img" />
+    <div>
+      <div id="bg-img-container"></div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.7/lib/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.2.0/dist/p5.sound.min.js"></script>
+    <script src="./InteractiveBackground.js"></script>
   </body>
 </html>
