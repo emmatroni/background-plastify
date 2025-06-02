@@ -1,5 +1,5 @@
 /// <reference path="./p5.global-mode.d.ts" />
-const container = document.getElementById("bg-img-container");
+const container = document.getElementById("desk-img");
 
 let deskImage;
 let deskWidth, deskHeight;
@@ -60,7 +60,7 @@ function setup() {
   const canvasWidth = container.clientWidth;
   const canvasHeight = container.clientHeight;
   const canvas = createCanvas(canvasWidth, canvasHeight);
-  canvas.parent("bg-img-container");
+  canvas.parent("desk-img");
 
   calculateImageDimensions();
 }
