@@ -40,7 +40,7 @@ function preload() {
       sound: loadSound("./assets/racchetta-beat.mp3"),
     },
     {
-      name: "racchetta",
+      name: "ping-pong",
       x: 3858,
       y: 2395,
       image: loadImage("./assets/racchettaBN.png"),
@@ -178,8 +178,27 @@ function draw() {
   image(deskImage, originX, originY, deskWidth, deskHeight);
 
   handleObjects(originX, originY);
+
+  // nome oggetto hoverato
+  if (hoveredObject) {
+    drawObjectText(hoveredObject.name);
+  }
 }
 
+function drawObjectText(objectName) {
+  fill(255);
+  textAlign(CENTER, BOTTOM);
+  textFont("helvetica-neue-lt-pro");
+  //126px da figma in 1440px larghezza prototipo = 8.75%
+  const responsiveFontSize = width * 0.0875;
+  textStyle(BOLD); // font-weight: 700
+
+  textSize(responsiveFontSize);
+  const textX = width / 2;
+  const responsiveMargin = height * 0.049; // 50px in 1024px altezza prototipo di figma
+  const textY = height - responsiveMargin;
+  text(`[${objectName.toUpperCase()}]`, textX, textY);
+}
 function handleObjects(originX, originY) {
   const scaleX = deskWidth / deskImage.width;
   const scaleY = deskHeight / deskImage.height;
