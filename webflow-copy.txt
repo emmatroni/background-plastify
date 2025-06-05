@@ -1,4 +1,7 @@
-/// <reference path="./p5.global-mode.d.ts" />
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.7/lib/p5.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.2.0/dist/p5.sound.min.js"></script>
+<script>
+    /// <reference path="./p5.global-mode.d.ts" />
 const container = document.getElementById("desk-img");
 
 let deskImage;
@@ -7,27 +10,12 @@ let deskWidth, deskHeight;
 let maxOffsetX, maxOffsetY;
 let deskOffsetX = 0;
 let deskOffsetY = 0;
-let primaryColor = "#fa5004";
-let objects = [];
-let hoveredObject = null;
-const deskScaleFactor = 1.2; // quando finestra < 1440px
-const deskFollowSpeed = 0.05;
 
-// var custom cursor
-let currentCursorX = 0;
-let currentCursorY = 0;
-const baseCursorSize = 10;
-const hoveredCursorSize = baseCursorSize * 2;
-let currentCursorSize = baseCursorSize;
-const cursorFollowSpeed = 0.2;
-const cursorSizeTransitionSpeed = 0.1;
-let textAnimationTimer = 0;
-let lastHoveredObject = null;
+let objects = [];
+let hoveredObject = null; // Track which object is being hovered
 
 function preload() {
-  deskImage = loadImage(
-    "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/foto-espansa-bn.webp"
-  );
+  deskImage = loadImage("https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/foto-espansa-bn.webp");
 
   objects = [
     {
@@ -184,9 +172,6 @@ function setup() {
   const canvasHeight = container.clientHeight;
   const canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent("desk-img");
-  noCursor();
-  container.style.cursor = "none";
-  document.body.style.cursor = "none";
 
   calculateImageDimensions();
 }
@@ -207,14 +192,14 @@ function calculateImageDimensions() {
     deskWidth = deskImage.width * scale;
     deskHeight = deskImage.height * scale;
 
-    // minimo movimento del 5% della dimensione del canvas
-    // --> minimo movimento anche quando l'immagine vicina alla dimensione del canvas
-    maxOffsetX = width * 0.05;
-    maxOffsetY = height * 0.05;
+    // minimo movimento del 2% della dimensione del canvas
+    // --> minimo movimento anche quando l'immagine è vicina alla dimensione del canvas
+    maxOffsetX = width * 0.02;
+    maxOffsetY = height * 0.02;
   } else {
-    // scala l'immagine per coprire il canvas con un margine del 20%
-    const scaleX = (width / deskImage.width) * deskScaleFactor;
-    const scaleY = (height / deskImage.height) * deskScaleFactor;
+    // scala l'immagine per coprire il canvas con un margine del 10%
+    const scaleX = (width / deskImage.width) * 1.1;
+    const scaleY = (height / deskImage.height) * 1.1;
     const scale = Math.max(scaleX, scaleY);
 
     deskWidth = deskImage.width * scale;
@@ -242,85 +227,41 @@ function draw() {
   const deskTargetOffsetX = map(mouseXNorm, 0, 1, maxOffsetX, -maxOffsetX);
   const deskTargetOffsetY = map(mouseYNorm, 0, 1, maxOffsetY, -maxOffsetY);
 
-  // lerp() aiuta ad avere un movimento + fluido/naturale: (velocità di transizione)
+  // lerp() aiuta ad avere un movimento + fluido/naturale:
   // https://p5js.org/reference/p5/lerp/
   // funzione che permette di interpolare tra due valori
   // il terzo parametro è = fattore di interpolazione (5% del percorso)
-  deskOffsetX = lerp(deskOffsetX, deskTargetOffsetX, deskFollowSpeed);
-  deskOffsetY = lerp(deskOffsetY, deskTargetOffsetY, deskFollowSpeed);
+  deskOffsetX = lerp(deskOffsetX, deskTargetOffsetX, 0.05);
+  deskOffsetY = lerp(deskOffsetY, deskTargetOffsetY, 0.05);
 
   // centra l'immagine e applica gli offset
   const originX = (width - deskWidth) / 2 + deskOffsetX;
-  // immagine alzata rispetto alla y del centro (per dare spazio all'header)
-  const originY = (height - deskHeight) / 7 + deskOffsetY;
+  const originY = (height - deskHeight) / 2 + deskOffsetY;
 
   image(deskImage, originX, originY, deskWidth, deskHeight);
 
   handleObjects(originX, originY);
-
   // nome oggetto hoverato
-  drawCustomCursor();
-}
-
-function drawCustomCursor() {
-  push();
-  fill(primaryColor);
-  noStroke();
-  textFont("helvetica-neue-lt-pro");
-  textStyle(BOLD);
-
-  //delay
-  currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
-  currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
-
-  //animazione dim cursrore
-  const targetSize = hoveredObject ? hoveredCursorSize : baseCursorSize;
-  currentCursorSize = lerp(
-    currentCursorSize,
-    targetSize,
-    cursorSizeTransitionSpeed
-  );
-
-  circle(currentCursorX, currentCursorY, currentCursorSize);
-
   if (hoveredObject) {
-    // ricomincia per evitare che si veda il nome dell'oggetto precedente
-    if (lastHoveredObject !== hoveredObject) {
-      textAnimationTimer = 0;
-      lastHoveredObject = hoveredObject;
-    }
-    textAnimationTimer += 1;
-
-    fill(255);
-    noStroke();
-    textAlign(LEFT, CENTER);
-    textSize(14);
-
-    const textX = currentCursorX + currentCursorSize / 2 + 10;
-    const textY = currentCursorY;
-
-    const objectName = hoveredObject.name.toUpperCase();
-
-    if (textAnimationTimer < 10) {
-      // 1. (primi 10 fotogrammi) --> []
-      text("[]", textX, textY);
-    } else {
-      // 2. lettere una alla volta ogni 3 fotogrammi (finché non appare il nome completo)
-      const lettersToShow = Math.floor((textAnimationTimer - 10) / 3);
-      const visibleText = objectName.substring(
-        0,
-        Math.min(lettersToShow, objectName.length)
-      );
-      text(`[ ${visibleText} ]`, textX, textY);
-    }
-  } else {
-    // Reset when not hovering
-    lastHoveredObject = null;
-    textAnimationTimer = 0;
+    drawObjectText(hoveredObject.name);
   }
-
-  pop();
 }
+
+function drawObjectText(objectName) {
+  fill(255);
+  textAlign(CENTER, BOTTOM);
+  textFont("helvetica-neue-lt-pro");
+  //126px da figma in 1440px larghezza prototipo = 8.75%
+  const responsiveFontSize = width * 0.0875;
+  textStyle(BOLD); // font-weight: 700
+
+  textSize(responsiveFontSize);
+  const textX = width / 2;
+  const responsiveMargin = height * 0.049; // 50px in 1024px altezza prototipo di figma
+  const textY = height - responsiveMargin;
+  text(`[${objectName.toUpperCase()}]`, textX, textY);
+}
+
 function handleObjects(originX, originY) {
   const scaleX = deskWidth / deskImage.width;
   const scaleY = deskHeight / deskImage.height;
@@ -350,6 +291,13 @@ function handleObjects(originX, originY) {
     deskWidth / deskImage.width,
     deskHeight / deskImage.height
   );
+
+  // Change cursor if hovering over an object
+  if (hoveredObject) {
+    cursor(HAND);
+  } else {
+    cursor(ARROW);
+  }
 }
 
 function drawObjects() {
@@ -450,3 +398,5 @@ function windowResized() {
   resizeCanvas(container.clientWidth, container.clientHeight);
   calculateImageDimensions();
 }
+
+    </script>
