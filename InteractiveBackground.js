@@ -33,12 +33,12 @@ function preload() {
 
   objects = [
     {
-      name: "piantina",
+      name: "natura",
       x: 4714,
       y: 434,
-      image: loadImage("./assets/piantinaBN.png"),
-      hoveredImage: loadImage("./assets/piantina-hovered.png"),
-      sound: loadSound("./assets/piantina-beat.mp3"),
+      image: loadImage("./assets/naturaBN.png"),
+      hoveredImage: loadImage("./assets/natura-hovered.png"),
+      sound: loadSound("./assets/natura-beat.mp3"),
       transitionProgress: 0, // Add transition progress tracking
     },
     {
@@ -47,7 +47,7 @@ function preload() {
       y: 785,
       image: loadImage("./assets/vinileBN.png"),
       hoveredImage: loadImage("./assets/vinile-hovered.png"),
-      sound: loadSound("./assets/piantina-beat.mp3"),
+      sound: loadSound("./assets/natura-beat.mp3"),
       transitionProgress: 0,
     },
     {
@@ -114,11 +114,11 @@ function preload() {
       transitionProgress: 0,
     },
     {
-      name: "pasta",
+      name: "cucina",
       x: 21,
       y: 1337,
-      image: loadImage("./assets/pastaBN.png"),
-      hoveredImage: loadImage("./assets/pasta-hovered.png"),
+      image: loadImage("./assets/cucinaBN.png"),
+      hoveredImage: loadImage("./assets/cucina-hovered.png"),
       sound: loadSound("./assets/racchetta-beat.mp3"),
       transitionProgress: 0,
     },
@@ -229,8 +229,9 @@ function drawCustomCursor() {
   currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
   currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
 
-  //animazione dim cursrore
-  const targetSize = hoveredObject ? hoveredCursorSize : baseCursorSize;
+  //animazione dim cursrore - now includes mouse press state
+  const targetSize =
+    hoveredObject || mouseIsPressed ? hoveredCursorSize : baseCursorSize;
   currentCursorSize = lerp(
     currentCursorSize,
     targetSize,
@@ -419,7 +420,7 @@ function mousePressed() {
 
 function handleObjectClick(object) {
   switch (object.name) {
-    case "piantina":
+    case "natura":
       console.log("Plant clicked! You can add your custom logic here.");
       object.sound.play();
       object.sound.stop();
