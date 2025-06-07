@@ -10,8 +10,12 @@ let deskOffsetY = 0;
 let primaryColor = "#fa5004";
 let objects = [];
 let hoveredObject = null;
+// variabili:
 const deskScaleFactor = 1.2; // quando finestra < 1440px
 const deskFollowSpeed = 0.05;
+
+//velocità di transizione dell'immagine
+const imageTransitionSpeed = 0.15;
 
 // var custom cursor
 let currentCursorX = 0;
@@ -35,6 +39,7 @@ function preload() {
       image: loadImage("./assets/piantinaBN.png"),
       hoveredImage: loadImage("./assets/piantina-hovered.png"),
       sound: loadSound("./assets/piantina-beat.mp3"),
+      transitionProgress: 0, // Add transition progress tracking
     },
     {
       name: "vinile",
@@ -43,6 +48,7 @@ function preload() {
       image: loadImage("./assets/vinileBN.png"),
       hoveredImage: loadImage("./assets/vinile-hovered.png"),
       sound: loadSound("./assets/piantina-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "occhiali",
@@ -51,6 +57,7 @@ function preload() {
       image: loadImage("./assets/occhialiBN.png"),
       hoveredImage: loadImage("./assets/occhiali-hovered.png"),
       sound: loadSound("./assets/racchetta-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "ping pong",
@@ -59,6 +66,7 @@ function preload() {
       image: loadImage("./assets/racchettaBN.png"),
       hoveredImage: loadImage("./assets/racchetta-hovered.png"),
       sound: loadSound("./assets/racchetta-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "pianola",
@@ -67,6 +75,7 @@ function preload() {
       image: loadImage("./assets/pianolaBN.png"),
       hoveredImage: loadImage("./assets/pianola-hovered.png"),
       sound: loadSound("./assets/pianola-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "calendario",
@@ -75,6 +84,7 @@ function preload() {
       image: loadImage("./assets/calendarioBN.png"),
       hoveredImage: loadImage("./assets/calendario-hovered.png"),
       sound: loadSound("./assets/calendario-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "spartito",
@@ -83,6 +93,7 @@ function preload() {
       image: loadImage("./assets/spartitoBN.png"),
       hoveredImage: loadImage("./assets/spartito-hovered.png"),
       sound: loadSound("./assets/spartito-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "passaporto",
@@ -91,6 +102,7 @@ function preload() {
       image: loadImage("./assets/passaportoBN.png"),
       hoveredImage: loadImage("./assets/passaporto-hovered.png"),
       sound: loadSound("./assets/passaporto-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "liquore",
@@ -99,6 +111,7 @@ function preload() {
       image: loadImage("./assets/liquoreBN.png"),
       hoveredImage: loadImage("./assets/liquore-hovered.png"),
       sound: loadSound("./assets/racchetta-beat.mp3"),
+      transitionProgress: 0,
     },
     {
       name: "pasta",
@@ -107,8 +120,13 @@ function preload() {
       image: loadImage("./assets/pastaBN.png"),
       hoveredImage: loadImage("./assets/pasta-hovered.png"),
       sound: loadSound("./assets/racchetta-beat.mp3"),
+      transitionProgress: 0,
     },
   ];
+}
+
+function easeIn(t) {
+  return t * t;
 }
 
 function setup() {
@@ -190,7 +208,7 @@ function draw() {
   // centra l'immagine e applica gli offset
   const originX = (width - deskWidth) / 2 + deskOffsetX;
   // immagine alzata rispetto alla y del centro (per dare spazio all'header)
-  const originY = (height - deskHeight) / 7 + deskOffsetY;
+  const originY = (height - deskHeight) / 5 + deskOffsetY;
 
   image(deskImage, originX, originY, deskWidth, deskHeight);
 
@@ -259,6 +277,7 @@ function drawCustomCursor() {
 
   pop();
 }
+
 function handleObjects(originX, originY) {
   const scaleX = deskWidth / deskImage.width;
   const scaleY = deskHeight / deskImage.height;
@@ -282,12 +301,27 @@ function handleObjects(originX, originY) {
     deskHeight / deskImage.height
   );
 
+  updateImageTransitions();
+
   drawObjects(
     originX,
     originY,
     deskWidth / deskImage.width,
     deskHeight / deskImage.height
   );
+}
+
+function updateImageTransitions() {
+  for (const object of objects) {
+    const isHovered = object === hoveredObject;
+    const targetProgress = isHovered ? 1 : 0;
+
+    object.transitionProgress = lerp(
+      object.transitionProgress,
+      targetProgress,
+      imageTransitionSpeed
+    );
+  }
 }
 
 function drawObjects() {
@@ -297,8 +331,19 @@ function drawObjects() {
     const w = object.transformedW;
     const h = object.transformedH;
 
-    if (object === hoveredObject) {
+    // TRANSIZIONE HOVERED IMG - ease in
+    const easedProgress = easeIn(object.transitionProgress);
+
+    if (easedProgress > 0.01) {
+      // diminuisce opacità img di base per effetto migliore
+      // e aumenta opacità dell'immagine hoverata
+      tint(255, 255 * (1 - easedProgress));
+      image(object.image, x, y, w, h);
+      tint(255, 255 * easedProgress);
       image(object.hoveredImage, x, y, w, h);
+
+      // resetta per evitare che rimangano al successivo hover
+      noTint();
     } else {
       image(object.image, x, y, w, h);
     }
