@@ -214,7 +214,7 @@ function draw() {
 
   handleObjects(originX, originY);
 
-  // nome oggetto hoverato
+  //nome oggetto hoverato
   drawCustomCursor();
 }
 
@@ -271,7 +271,7 @@ function drawCustomCursor() {
       text(`[ ${visibleText} ]`, textX, textY);
     }
   } else {
-    // Reset when not hovering
+    // reset variabili quando non c'è nessun oggetto hoverato
     lastHoveredObject = null;
     textAnimationTimer = 0;
   }
@@ -419,15 +419,14 @@ function mousePressed() {
 }
 
 function handleObjectClick(object) {
-  switch (object.name) {
-    case "natura":
-      console.log("Plant clicked! You can add your custom logic here.");
-      object.sound.play();
-      object.sound.stop();
-      break;
-    default:
-      console.log(`Clicked on unknown object: ${object.name}`);
-  }
+  const objectNameForURL = object.name.replace(/\s+/g, "");
+  const targetURL = `https://wddc-noproblem.webflow.io/${objectNameForURL}`;
+
+  // apre url nellas tessa window/tab
+  window.location.href = targetURL;
+
+  // ferma il suono quando si clicca su un oggetto
+  object.sound.stop();
 }
 
 function windowResized() {

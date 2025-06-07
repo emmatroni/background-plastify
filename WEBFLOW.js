@@ -10,8 +10,12 @@ let deskOffsetY = 0;
 let primaryColor = "#fa5004";
 let objects = [];
 let hoveredObject = null;
+// variabili:
 const deskScaleFactor = 1.2; // quando finestra < 1440px
 const deskFollowSpeed = 0.05;
+
+//velocità di transizione dell'immagine
+const imageTransitionSpeed = 0.15;
 
 // var custom cursor
 let currentCursorX = 0;
@@ -31,17 +35,17 @@ function preload() {
 
   objects = [
     {
-      name: "piantina",
+      name: "natura",
       x: 4714,
       y: 434,
       image: loadImage(
-        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/piantinaBN.png"
+        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/naturaBN.png"
       ),
       hoveredImage: loadImage(
-        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/piantina-hovered.png"
+        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/natura-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/piantina-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/natura-beat.mp3"
       ),
     },
     {
@@ -55,7 +59,7 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/vinile-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/piantina-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/natura-beat.mp3"
       ),
     },
     {
@@ -161,16 +165,20 @@ function preload() {
       x: 21,
       y: 1337,
       image: loadImage(
-        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/pastaBN.png"
+        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/cucinaBN.png"
       ),
       hoveredImage: loadImage(
-        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/pasta-hovered.png"
+        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/cucina-hovered.png"
       ),
       sound: loadSound(
         "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/racchetta-beat.mp3"
       ),
     },
   ];
+}
+
+function easeIn(t) {
+  return t * t;
 }
 
 function setup() {
@@ -252,13 +260,13 @@ function draw() {
   // centra l'immagine e applica gli offset
   const originX = (width - deskWidth) / 2 + deskOffsetX;
   // immagine alzata rispetto alla y del centro (per dare spazio all'header)
-  const originY = (height - deskHeight) / 7 + deskOffsetY;
+  const originY = (height - deskHeight) / 5 + deskOffsetY;
 
   image(deskImage, originX, originY, deskWidth, deskHeight);
 
   handleObjects(originX, originY);
 
-  // nome oggetto hoverato
+  //nome oggetto hoverato
   drawCustomCursor();
 }
 
@@ -273,8 +281,9 @@ function drawCustomCursor() {
   currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
   currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
 
-  //animazione dim cursrore
-  const targetSize = hoveredObject ? hoveredCursorSize : baseCursorSize;
+  //animazione dim cursrore - now includes mouse press state
+  const targetSize =
+    hoveredObject || mouseIsPressed ? hoveredCursorSize : baseCursorSize;
   currentCursorSize = lerp(
     currentCursorSize,
     targetSize,
@@ -314,13 +323,14 @@ function drawCustomCursor() {
       text(`[ ${visibleText} ]`, textX, textY);
     }
   } else {
-    // Reset when not hovering
+    // reset variabili quando non c'è nessun oggetto hoverato
     lastHoveredObject = null;
     textAnimationTimer = 0;
   }
 
   pop();
 }
+
 function handleObjects(originX, originY) {
   const scaleX = deskWidth / deskImage.width;
   const scaleY = deskHeight / deskImage.height;
@@ -344,12 +354,27 @@ function handleObjects(originX, originY) {
     deskHeight / deskImage.height
   );
 
+  updateImageTransitions();
+
   drawObjects(
     originX,
     originY,
     deskWidth / deskImage.width,
     deskHeight / deskImage.height
   );
+}
+
+function updateImageTransitions() {
+  for (const object of objects) {
+    const isHovered = object === hoveredObject;
+    const targetProgress = isHovered ? 1 : 0;
+
+    object.transitionProgress = lerp(
+      object.transitionProgress,
+      targetProgress,
+      imageTransitionSpeed
+    );
+  }
 }
 
 function drawObjects() {
@@ -359,8 +384,19 @@ function drawObjects() {
     const w = object.transformedW;
     const h = object.transformedH;
 
-    if (object === hoveredObject) {
+    // TRANSIZIONE HOVERED IMG - ease in
+    const easedProgress = easeIn(object.transitionProgress);
+
+    if (easedProgress > 0.01) {
+      // diminuisce opacità img di base per effetto migliore
+      // e aumenta opacità dell'immagine hoverata
+      tint(255, 255 * (1 - easedProgress));
+      image(object.image, x, y, w, h);
+      tint(255, 255 * easedProgress);
       image(object.hoveredImage, x, y, w, h);
+
+      // resetta per evitare che rimangano al successivo hover
+      noTint();
     } else {
       image(object.image, x, y, w, h);
     }
@@ -435,15 +471,14 @@ function mousePressed() {
 }
 
 function handleObjectClick(object) {
-  switch (object.name) {
-    case "piantina":
-      console.log("Plant clicked! You can add your custom logic here.");
-      object.sound.play();
-      object.sound.stop();
-      break;
-    default:
-      console.log(`Clicked on unknown object: ${object.name}`);
-  }
+  const objectNameForURL = object.name.replace(/\s+/g, "");
+  const targetURL = `https://wddc-noproblem.webflow.io/${objectNameForURL}`;
+
+  // apre url nellas tessa window/tab
+  window.location.href = targetURL;
+
+  // ferma il suono quando si clicca su un oggetto
+  object.sound.stop();
 }
 
 function windowResized() {
