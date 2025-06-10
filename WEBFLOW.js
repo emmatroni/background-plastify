@@ -73,7 +73,7 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/occhiali-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/racchetta-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/occhiali-beat.mp3"
       ),
     },
     {
@@ -87,7 +87,7 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/racchetta-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/racchetta-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/pingpong-beat.mp3"
       ),
     },
     {
@@ -157,7 +157,7 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/liquore-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/racchetta-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/liquore-beat.mp3"
       ),
     },
     {
@@ -171,14 +171,10 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/cucina-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/racchetta-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/cucina-beat.mp3"
       ),
     },
   ];
-}
-
-function easeIn(t) {
-  return t * t;
 }
 
 function setup() {
@@ -266,7 +262,7 @@ function draw() {
 
   handleObjects(originX, originY);
 
-  //nome oggetto hoverato
+  // nome oggetto hoverato
   drawCustomCursor();
 }
 
@@ -323,7 +319,7 @@ function drawCustomCursor() {
       text(`[ ${visibleText} ]`, textX, textY);
     }
   } else {
-    // reset variabili quando non c'è nessun oggetto hoverato
+    // reset
     lastHoveredObject = null;
     textAnimationTimer = 0;
   }
@@ -367,13 +363,7 @@ function handleObjects(originX, originY) {
 function updateImageTransitions() {
   for (const object of objects) {
     const isHovered = object === hoveredObject;
-    const targetProgress = isHovered ? 1 : 0;
-
-    object.transitionProgress = lerp(
-      object.transitionProgress,
-      targetProgress,
-      imageTransitionSpeed
-    );
+    object.transitionProgress = isHovered ? 1 : 0;
   }
 }
 
@@ -384,15 +374,15 @@ function drawObjects() {
     const w = object.transformedW;
     const h = object.transformedH;
 
-    // TRANSIZIONE HOVERED IMG - ease in
-    const easedProgress = easeIn(object.transitionProgress);
+    // Use direct transition progress without easing
+    const progress = object.transitionProgress;
 
-    if (easedProgress > 0.01) {
+    if (progress > 0.01) {
       // diminuisce opacità img di base per effetto migliore
       // e aumenta opacità dell'immagine hoverata
-      tint(255, 255 * (1 - easedProgress));
+      tint(255, 255 * (1 - progress));
       image(object.image, x, y, w, h);
-      tint(255, 255 * easedProgress);
+      tint(255, 255 * progress);
       image(object.hoveredImage, x, y, w, h);
 
       // resetta per evitare che rimangano al successivo hover
