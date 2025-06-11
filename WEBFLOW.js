@@ -77,7 +77,7 @@ function preload() {
       ),
     },
     {
-      name: "ping pong",
+      name: "ping-pong",
       x: 3858,
       y: 2395,
       image: loadImage(
@@ -179,11 +179,6 @@ function preload() {
 
 function setup() {
   console.log("Setup called");
-  console.log(
-    "Container dimensions:",
-    container.clientWidth,
-    container.clientHeight
-  );
   const canvasWidth = container.clientWidth;
   const canvasHeight = container.clientHeight;
   const canvas = createCanvas(canvasWidth, canvasHeight);
@@ -193,6 +188,7 @@ function setup() {
   document.body.style.cursor = "none";
 
   calculateImageDimensions();
+  container.classList.add("loaded");
 }
 
 function calculateImageDimensions() {
