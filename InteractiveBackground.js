@@ -21,7 +21,7 @@ const imageTransitionSpeed = 0.15;
 let currentCursorX = 0;
 let currentCursorY = 0;
 const baseCursorSize = 10;
-const hoveredCursorSize = baseCursorSize * 2;
+const hoveredCursorSize = baseCursorSize * 3;
 let currentCursorSize = baseCursorSize;
 const cursorFollowSpeed = 0.2;
 const cursorSizeTransitionSpeed = 0.1;
@@ -56,7 +56,7 @@ function preload() {
       y: 2225,
       image: loadImage("./assets/occhialiBN.png"),
       hoveredImage: loadImage("./assets/occhiali-hovered.png"),
-      sound: loadSound("./assets/racchetta-beat.mp3"),
+      sound: loadSound("./assets/occhiali-beat.mp3"),
       transitionProgress: 0,
     },
     {
@@ -65,7 +65,7 @@ function preload() {
       y: 2395,
       image: loadImage("./assets/racchettaBN.png"),
       hoveredImage: loadImage("./assets/racchetta-hovered.png"),
-      sound: loadSound("./assets/racchetta-beat.mp3"),
+      sound: loadSound("./assets/pingpong-beat.mp3"),
       transitionProgress: 0,
     },
     {
@@ -110,7 +110,7 @@ function preload() {
       y: 2240,
       image: loadImage("./assets/liquoreBN.png"),
       hoveredImage: loadImage("./assets/liquore-hovered.png"),
-      sound: loadSound("./assets/racchetta-beat.mp3"),
+      sound: loadSound("./assets/liquore-beat.mp3"),
       transitionProgress: 0,
     },
     {
@@ -119,7 +119,7 @@ function preload() {
       y: 1337,
       image: loadImage("./assets/cucinaBN.png"),
       hoveredImage: loadImage("./assets/cucina-hovered.png"),
-      sound: loadSound("./assets/racchetta-beat.mp3"),
+      sound: loadSound("./assets/cucina-beat.mp3"),
       transitionProgress: 0,
     },
   ];
@@ -204,7 +204,7 @@ function draw() {
   // centra l'immagine e applica gli offset
   const originX = (width - deskWidth) / 2 + deskOffsetX;
   // immagine alzata rispetto alla y del centro (per dare spazio all'header)
-  const originY = (height - deskHeight) / 5 + deskOffsetY;
+  const originY = (height - deskHeight) / 30 + deskOffsetY;
 
   image(deskImage, originX, originY, deskWidth, deskHeight);
 

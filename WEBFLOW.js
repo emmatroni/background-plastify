@@ -21,7 +21,7 @@ const imageTransitionSpeed = 0.15;
 let currentCursorX = 0;
 let currentCursorY = 0;
 const baseCursorSize = 10;
-const hoveredCursorSize = baseCursorSize * 2;
+const hoveredCursorSize = baseCursorSize * 3;
 let currentCursorSize = baseCursorSize;
 const cursorFollowSpeed = 0.2;
 const cursorSizeTransitionSpeed = 0.1;
@@ -179,6 +179,11 @@ function preload() {
 
 function setup() {
   console.log("Setup called");
+  console.log(
+    "Container dimensions:",
+    container.clientWidth,
+    container.clientHeight
+  );
   const canvasWidth = container.clientWidth;
   const canvasHeight = container.clientHeight;
   const canvas = createCanvas(canvasWidth, canvasHeight);
@@ -188,7 +193,6 @@ function setup() {
   document.body.style.cursor = "none";
 
   calculateImageDimensions();
-  container.classList.add("loaded");
 }
 
 function calculateImageDimensions() {
@@ -252,7 +256,7 @@ function draw() {
   // centra l'immagine e applica gli offset
   const originX = (width - deskWidth) / 2 + deskOffsetX;
   // immagine alzata rispetto alla y del centro (per dare spazio all'header)
-  const originY = (height - deskHeight) / 5 + deskOffsetY;
+  const originY = (height - deskHeight) / 30 + deskOffsetY;
 
   image(deskImage, originX, originY, deskWidth, deskHeight);
 
