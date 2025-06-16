@@ -36,6 +36,7 @@
   const cursorSizeTransitionSpeed = 0.1;
   let textAnimationTimer = 0;
   let lastHoveredObject = null;
+  let isHoveringHeaderNavLink = false;
 
   function preload() {
     deskImage = loadImage(
@@ -202,6 +203,23 @@
     document.body.style.cursor = "none";
 
     calculateImageDimensions();
+
+    // Set up header nav link detection
+    setupHeaderNavLinkDetection();
+  }
+
+  function setupHeaderNavLinkDetection() {
+    const headerNavLinks = document.querySelectorAll(".header-nav-link");
+
+    headerNavLinks.forEach((link) => {
+      link.addEventListener("mouseenter", () => {
+        isHoveringHeaderNavLink = true;
+      });
+
+      link.addEventListener("mouseleave", () => {
+        isHoveringHeaderNavLink = false;
+      });
+    });
   }
 
   function calculateImageDimensions() {
@@ -303,9 +321,11 @@
     currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
     currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
 
-    //animazione dim cursore
+    //animazione dim cursore (oggetti + header link)
     const targetSize =
-      hoveredObject || mouseIsPressed ? hoveredCursorSize : baseCursorSize;
+      hoveredObject || mouseIsPressed || isHoveringHeaderNavLink
+        ? hoveredCursorSize
+        : baseCursorSize;
     currentCursorSize = lerp(
       currentCursorSize,
       targetSize,
@@ -345,7 +365,6 @@
         text(`[ ${visibleText} ]`, textX, textY);
       }
     } else {
-      // reset
       lastHoveredObject = null;
       textAnimationTimer = 0;
     }
@@ -400,7 +419,6 @@
       const w = object.transformedW;
       const h = object.transformedH;
 
-      // Use direct transition progress without easing
       const progress = object.transitionProgress;
 
       if (progress > 0.01) {
@@ -431,7 +449,7 @@
       if (collision) {
         hoveredObject = object;
         if (previousObject !== hoveredObject) {
-          // Start to play sound if new hoveredObject is different from previousObject
+          // play quando hover != precedente
           hoveredObject.sound.play();
         }
         break;
@@ -439,7 +457,7 @@
     }
 
     if (hoveredObject === null && previousObject !== null) {
-      // Stop all sound if no collision is found but previousObject was hovered.
+      // Stop tutti suoni se non collide
       for (const object of objects) {
         object.sound.stop();
       }
@@ -488,7 +506,7 @@
 
   function handleObjectClick(object) {
     const objectNameForURL = object.name.replace(/\s+/g, "");
-    const targetURL = `https://plastify.webflow.io/${objectNameForURL}`;
+    const targetURL = `https://wddc-noproblem.webflow.io/${objectNameForURL}`;
 
     // apre url nellas tessa window/tab
     window.location.href = targetURL;
