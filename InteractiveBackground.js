@@ -20,6 +20,12 @@ const imageTransitionSpeed = 0.15;
 // var custom cursor
 let currentCursorX = 0;
 let currentCursorY = 0;
+
+let cursorVisible = false;
+let cursorDelayTimer = 0;
+const cursorDelayFrames = 30; // 0.5 s = 30fps
+let cursorInitialized = false;
+
 const baseCursorSize = 10;
 const hoveredCursorSize = baseCursorSize * 3;
 let currentCursorSize = baseCursorSize;
@@ -27,6 +33,7 @@ const cursorFollowSpeed = 0.2;
 const cursorSizeTransitionSpeed = 0.1;
 let textAnimationTimer = 0;
 let lastHoveredObject = null;
+let isHoveringHeaderNavLink = false;
 
 function preload() {
   deskImage = loadImage("./assets/foto-espansa-bn.webp");
@@ -60,7 +67,7 @@ function preload() {
       transitionProgress: 0,
     },
     {
-      name: "ping pong",
+      name: "ping-pong",
       x: 3858,
       y: 2395,
       image: loadImage("./assets/racchettaBN.png"),
@@ -90,7 +97,7 @@ function preload() {
       name: "spartito",
       x: 0,
       y: 2095,
-      image: loadImage("./assets/spartitoBN.png"),
+      image: loadImage("./assets/spartitoBN-scrivania.png"),
       hoveredImage: loadImage("./assets/spartito-hovered.png"),
       sound: loadSound("./assets/spartito-beat.mp3"),
       transitionProgress: 0,
@@ -141,6 +148,23 @@ function setup() {
   document.body.style.cursor = "none";
 
   calculateImageDimensions();
+
+  // Set up header nav link detection
+  setupHeaderNavLinkDetection();
+}
+
+function setupHeaderNavLinkDetection() {
+  const headerNavLinks = document.querySelectorAll(".header-nav-link");
+
+  headerNavLinks.forEach((link) => {
+    link.addEventListener("mouseenter", () => {
+      isHoveringHeaderNavLink = true;
+    });
+
+    link.addEventListener("mouseleave", () => {
+      isHoveringHeaderNavLink = false;
+    });
+  });
 }
 
 function calculateImageDimensions() {
@@ -148,21 +172,24 @@ function calculateImageDimensions() {
   const isLargeDisplay = width >= 1440;
 
   if (isLargeDisplay) {
-    // scala l'immagine per coprire il canvas senza margini
-    // garantisce che l'immagine sia sempre della stessa dimensione del canvas
+    // scala l'immagine per coprire il canvas e la ingrandisce del 20%
     const scaleX = width / deskImage.width;
     const scaleY = height / deskImage.height;
     // math.max()restituisce il valore più grande tra i due
     // --> prendo il massimo tra i due scale per mantenere le proporzioni
-    const scale = Math.max(scaleX, scaleY);
+    // Aggiungo il 20% di zoom
+    const scale = Math.max(scaleX, scaleY) * 1.03;
 
     deskWidth = deskImage.width * scale;
     deskHeight = deskImage.height * scale;
 
-    // minimo movimento del 5% della dimensione del canvas
-    // --> minimo movimento anche quando l'immagine vicina alla dimensione del canvas
-    maxOffsetX = width * 0.05;
-    maxOffsetY = height * 0.05;
+    // Calcola il massimo offset in base alla dimensione dell'immagine zoomata
+    maxOffsetX = Math.max(0, (deskWidth - width) / 2);
+    maxOffsetY = Math.max(0, (deskHeight - height) / 2);
+
+    // Garantisce che ci sia sempre un minimo di movimento
+    maxOffsetX = Math.max(maxOffsetX, width * 0.05);
+    maxOffsetY = Math.max(maxOffsetY, height * 0.05);
   } else {
     // scala l'immagine per coprire il canvas con un margine del 20%
     const scaleX = (width / deskImage.width) * deskScaleFactor;
@@ -183,7 +210,6 @@ function calculateImageDimensions() {
     maxOffsetY = Math.max(maxOffsetY, height * 0.05);
   }
 }
-
 function draw() {
   background(0);
 
@@ -210,11 +236,26 @@ function draw() {
 
   handleObjects(originX, originY);
 
-  // nome oggetto hoverato
   drawCustomCursor();
 }
 
 function drawCustomCursor() {
+  // faccio entrare dopo il cursore per evitare che si posizioni
+  // all'origine del canvas al caricamento della pagina
+  cursorDelayTimer++;
+  if (!cursorVisible && cursorDelayTimer >= cursorDelayFrames) {
+    cursorVisible = true;
+    if (!cursorInitialized) {
+      currentCursorX = mouseX;
+      currentCursorY = mouseY;
+      cursorInitialized = true;
+    }
+  }
+  // Non disegnare nulla se il cursore non è ancora visibile
+  if (!cursorVisible) {
+    return;
+  }
+
   push();
   fill(primaryColor);
   noStroke();
@@ -225,9 +266,11 @@ function drawCustomCursor() {
   currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
   currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
 
-  //animazione dim cursrore - now includes mouse press state
+  //animazione dim cursore (oggetti + header link)
   const targetSize =
-    hoveredObject || mouseIsPressed ? hoveredCursorSize : baseCursorSize;
+    hoveredObject || mouseIsPressed || isHoveringHeaderNavLink
+      ? hoveredCursorSize
+      : baseCursorSize;
   currentCursorSize = lerp(
     currentCursorSize,
     targetSize,
@@ -267,7 +310,6 @@ function drawCustomCursor() {
       text(`[ ${visibleText} ]`, textX, textY);
     }
   } else {
-    // reset
     lastHoveredObject = null;
     textAnimationTimer = 0;
   }
@@ -322,7 +364,6 @@ function drawObjects() {
     const w = object.transformedW;
     const h = object.transformedH;
 
-    // Use direct transition progress without easing
     const progress = object.transitionProgress;
 
     if (progress > 0.01) {
@@ -353,7 +394,7 @@ function checkMouseCollision() {
     if (collision) {
       hoveredObject = object;
       if (previousObject !== hoveredObject) {
-        // Start to play sound if new hoveredObject is different from previousObject
+        // play quando hover != precedente
         hoveredObject.sound.play();
       }
       break;
@@ -361,7 +402,7 @@ function checkMouseCollision() {
   }
 
   if (hoveredObject === null && previousObject !== null) {
-    // Stop all sound if no collision is found but previousObject was hovered.
+    // Stop tutti suoni se non collide
     for (const object of objects) {
       object.sound.stop();
     }

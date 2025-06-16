@@ -20,6 +20,12 @@ const imageTransitionSpeed = 0.15;
 // var custom cursor
 let currentCursorX = 0;
 let currentCursorY = 0;
+
+let cursorVisible = false;
+let cursorDelayTimer = 0;
+const cursorDelayFrames = 30; // 0.5 s = 30fps
+let cursorInitialized = false;
+
 const baseCursorSize = 10;
 const hoveredCursorSize = baseCursorSize * 3;
 let currentCursorSize = baseCursorSize;
@@ -59,7 +65,7 @@ function preload() {
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/vinile-hovered.png"
       ),
       sound: loadSound(
-        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/natura-beat.mp3"
+        "https://raw.githubusercontent.com/emmatroni/background-plastify/main/assets/vinile-beat.mp3"
       ),
     },
     {
@@ -123,7 +129,7 @@ function preload() {
       x: 0,
       y: 2095,
       image: loadImage(
-        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/spartitoBN.png"
+        "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/spartitoBN-scrivania.png"
       ),
       hoveredImage: loadImage(
         "https://cdn.jsdelivr.net/gh/emmatroni/background-plastify@main/assets/spartito-hovered.png"
@@ -200,21 +206,24 @@ function calculateImageDimensions() {
   const isLargeDisplay = width >= 1440;
 
   if (isLargeDisplay) {
-    // scala l'immagine per coprire il canvas senza margini
-    // garantisce che l'immagine sia sempre della stessa dimensione del canvas
+    // scala l'immagine per coprire il canvas e la ingrandisce del 20%
     const scaleX = width / deskImage.width;
     const scaleY = height / deskImage.height;
     // math.max()restituisce il valore più grande tra i due
     // --> prendo il massimo tra i due scale per mantenere le proporzioni
-    const scale = Math.max(scaleX, scaleY);
+    // Aggiungo il 20% di zoom
+    const scale = Math.max(scaleX, scaleY) * 1.03;
 
     deskWidth = deskImage.width * scale;
     deskHeight = deskImage.height * scale;
 
-    // minimo movimento del 5% della dimensione del canvas
-    // --> minimo movimento anche quando l'immagine vicina alla dimensione del canvas
-    maxOffsetX = width * 0.05;
-    maxOffsetY = height * 0.05;
+    // Calcola il massimo offset in base alla dimensione dell'immagine zoomata
+    maxOffsetX = Math.max(0, (deskWidth - width) / 2);
+    maxOffsetY = Math.max(0, (deskHeight - height) / 2);
+
+    // Garantisce che ci sia sempre un minimo di movimento
+    maxOffsetX = Math.max(maxOffsetX, width * 0.05);
+    maxOffsetY = Math.max(maxOffsetY, height * 0.05);
   } else {
     // scala l'immagine per coprire il canvas con un margine del 20%
     const scaleX = (width / deskImage.width) * deskScaleFactor;
@@ -235,7 +244,6 @@ function calculateImageDimensions() {
     maxOffsetY = Math.max(maxOffsetY, height * 0.05);
   }
 }
-
 function draw() {
   background(0);
 
@@ -262,11 +270,26 @@ function draw() {
 
   handleObjects(originX, originY);
 
-  // nome oggetto hoverato
   drawCustomCursor();
 }
 
 function drawCustomCursor() {
+  // faccio entrare dopo il cursore per evitare che si posizioni
+  // all'origine del canvas al caricamento della pagina
+  cursorDelayTimer++;
+  if (!cursorVisible && cursorDelayTimer >= cursorDelayFrames) {
+    cursorVisible = true;
+    if (!cursorInitialized) {
+      currentCursorX = mouseX;
+      currentCursorY = mouseY;
+      cursorInitialized = true;
+    }
+  }
+  // Non disegnare nulla se il cursore non è ancora visibile
+  if (!cursorVisible) {
+    return;
+  }
+
   push();
   fill(primaryColor);
   noStroke();
@@ -277,7 +300,7 @@ function drawCustomCursor() {
   currentCursorX = lerp(currentCursorX, mouseX, cursorFollowSpeed);
   currentCursorY = lerp(currentCursorY, mouseY, cursorFollowSpeed);
 
-  //animazione dim cursrore - now includes mouse press state
+  //animazione dim cursore
   const targetSize =
     hoveredObject || mouseIsPressed ? hoveredCursorSize : baseCursorSize;
   currentCursorSize = lerp(
